@@ -23,7 +23,11 @@ class MemoryControl:
         self.memory = Memory.from_config(self.config)
 
     def get_context(self, query: str, memory_id: str):
-        return self.memory.search(query=query, user_id=memory_id)
+        get_memory = self.memory.search(query=query, user_id=memory_id)
+        memories = "\n".join(
+            [f"- {entry['memory']}" for entry in get_memory["results"]]
+        )
+        return memories
 
     def add_context(self, list_messages: List, memory_id: str):
         return self.memory.add(list_messages, user_id=memory_id)
