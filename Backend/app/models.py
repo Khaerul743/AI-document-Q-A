@@ -18,8 +18,9 @@ class AgentDecisionStructuredOutput(BaseModel):
 
 class AgentState(BaseModel):
     messages: Annotated[Sequence[BaseMessage], add_messages]
-    user_message: Optional[str] = None
+    user_message: Optional[str] = "none"
+    response: Optional[str] = "none"
     is_document: bool = False
-    can_answer: bool = False
-    reason: Optional[str] = None
-    document_description: Optional[str] = None
+    # can_answer: bool = False
+    reason: Optional[str] = "none"
+    document_description: Optional[str] = "none"

@@ -1,7 +1,10 @@
 from typing import Optional
 
+from dotenv import load_dotenv
 from langchain_core.messages import HumanMessage, SystemMessage
 from memory import MemoryControl
+
+load_dotenv()
 
 
 class AgentPromptControl:
@@ -29,13 +32,17 @@ class AgentPromptControl:
         return [
             SystemMessage(
                 content=f"""
-Kamu adalah chatbot assisten pribadi.
-Tugas kamu adalah menjawab pesan dari pengguna, sebelum menjawab pesan, pastikan kamu memahami konteks sebelumnya(jika ada).
-Berikut adalah konteks percakapan sebelumnya:
-{previous_context}
+Kamu adalah asisten pribadi.
+Kamu memiliki akses ke tool berikut:
+- get_document(query: str): Gunakan untuk mengambil informasi dari dokumen pengguna.
 
-Jika kamu tidak bisa menjawab pertanyaan dari pengguna, kamu boleh menggunakan tool yang telah disediakan.
-Pastikan kamu memahami ketentuan seperti parameter yang sesuai dari tool yg telah disediakan.
+Instruksi:
+1. Jika kamu tidak tahu jawabannya atau perlu informasi dari dokumen, PANGGIL tool get_document.
+2. Jangan jawab "tidak tahu" tanpa mencoba tool.
+3. Selalu prioritaskan penggunaan tool sebelum menebak.
+
+History percakapan sebelumnya:
+{previous_context}
 """
             ),
             HumanMessage(content=user_message),
@@ -43,5 +50,5 @@ Pastikan kamu memahami ketentuan seperti parameter yang sesuai dari tool yg tela
 
 
 if __name__ == "__main__":
-    prompt = AgentPromptControl()
-    print(prompt.main_agent(user_message="hai"))
+    prompt = AgentPromptControl(is_include_memory=False)
+    print(prompt.main_agent(user_message="siapakah nama saya?"))
