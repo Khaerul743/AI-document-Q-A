@@ -21,8 +21,9 @@ class AgentState(BaseModel):
     user_message: Optional[str] = "none"
     response: Optional[str] = "none"
     is_include_document: bool = False
-    document_title: Optional[str] = "none"
+    document_name: Optional[str] = "none"
     document_content: Optional[str] = "none"
+    document_type: Optional[str] = "none"
     # can_answer: bool = False
     reason: Optional[str] = "none"
     document_description: Optional[str] = "none"

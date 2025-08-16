@@ -39,7 +39,26 @@ class RAGSystem:
             print(f"Membuat ChromaDB baru: {e}")
             # Buat directory jika belum ada
             os.makedirs(self.chroma_directory, exist_ok=True)
-    def load_one_document(self, directory_path:str, file_name:str, file_type:str):
+
+    def load_one_document(self, directory_path: str, file_name: str, file_type: str):
+        documents = []
+        if file_type == "txt":
+            loader = DirectoryLoader(
+                directory_path, glob=f"{file_name}", loader_cls=TextLoader
+            )
+        elif file_type == "pdf":
+            loader = DirectoryLoader(
+                directory_path, glob=f"{file_name}", loader_cls=PyPDFLoader
+            )
+
+        try:
+            document = loader.load()
+            documents.extend(document)
+            print(f"Berhasil memuat {len(document)} dokumen {file_type}")
+        except Exception as e:
+            print(f"Error loading {file_type} files: {e}")
+
+        return documents
 
     def load_document(self, directory_path: str, file_types: Optional[List] = None):
         if file_types is None:
@@ -117,10 +136,7 @@ class RAGSystem:
 
     def query(self, question: str):
         if self.qa_chain is None:
-            return {
-                "answer": "RAG system belum disetup. Silakan tambahkan dokumen terlebih dahulu.",
-                "source_documents": [],
-            }
+            return False
 
         try:
             result = self.qa_chain({"query": question})
@@ -139,8 +155,11 @@ class RAGSystem:
 
 
 if __name__ == "__main__":
-    rag = RAGSystem("data", collection_name="my_collection")
-    documents = rag.load_document("docs", file_types=["pdf"])
-    rag.add_document(documents)
+    rag = RAGSystem("data", collection_name="my_collections")
+    # documents = rag.load_document("docs", file_types=["pdf"])
+    # rag.add_document(documents)
     similarity = rag.similarity_search("RPL")
     print(similarity)
+    # doc = rag.load_one_document("docs", "TUGAS BESAR 2 RPL.pdf", "pdf")
+    # docs = "".join([item.page_content for item in doc])
+    # print(docs)

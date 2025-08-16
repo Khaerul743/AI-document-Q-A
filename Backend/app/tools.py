@@ -1,4 +1,3 @@
-from langchain_core.tools import tool
 from RAG import RAGSystem
 
 
@@ -6,13 +5,14 @@ class AgentTools:
     def __init__(self):
         self.rag = RAGSystem("data", "my_collections")
 
-    @tool
     def get_document(self, query: str):
+        """Gunakan tool untuk mencari informasi dokumen yang telah diberikan oleh pengguna."""
         try:
             get_document = self.rag.query(query)
             if not get_document:
                 list_docs = []
                 documents = self.rag.similarity_search(query)
+                print(documents)
                 for document in documents:
                     detail_doc = {
                         "source": document.metadata["source"],
@@ -21,10 +21,16 @@ class AgentTools:
                     }
                     list_docs.append(detail_doc)
 
-                get_document = "Berikut adalah hasil search dari document:\n"
+                get_document = "Berikut adalah hasil search dari document:"
                 for item in list_docs:
-                    get_document += f"- source: {item.source}\n-page: {item.page}\n-content: {item.content}"
+                    get_document += f"\n**PAGE {item['page']}**\n- source: {item['source']}\n-content: {item['content']}\n"
             return get_document
         except Exception as e:
             print(f"Terjadi kesalahan di tool get_document: {e}")
             return f"Terjadi kesalahan saat query ke document {e}"
+
+
+if __name__ == "__main__":
+    tool = AgentTools()
+    tool_result = tool.get_document("Apa itu RPL?")
+    print(tool_result)

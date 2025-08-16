@@ -27,21 +27,42 @@ class Workflow:
         graph = StateGraph(AgentState)
         graph.add_node("main_agent", self._main_agent)
         graph.add_node("get_document", ToolNode(tools=[self.tools.get_document]))
+        graph.add_node("load_document", self._load_document)
 
-        graph.add_edge(START, "main_agent")
+        graph.add_conditional_edges(
+            START,
+            self._checking_message_type,
+            {"describe_document": "load_document", "main_agent": "main_agent"},
+        )
+
+        graph.add_edge("main_agent", "get_document")
+        graph.add_edge("get_document", END)
+        graph.add_edge("load_document", END)
 
         return graph.compile()
 
     def _checking_message_type(self, state: AgentState):
-        if state.is_include_document and os.path.exists(state.document_title):
+        if state.is_include_document and os.path.exists(
+            f"{self.directiory_path}/{state.document_name}"
+        ):
             return "describe_document"
         return "main_agent"
 
     def _load_document(self, state: AgentState):
         if not os.path.exists(self.directiory_path + "/"):
             os.makedirs(self.directiory_path, exist_ok=True)
-        
+        documents = self.rag.load_document(self.directiory_path)
+        self.rag.add_document(documents=documents)
 
+        get_single_docs = self.rag.load_one_document(
+            self.directiory_path, state.document_name, state.document_type
+        )
+        document = "".join([item.page_content for item in get_single_docs])
+
+        if not os.path.exists(f"{self.directiory_path}/{state.document_name}"):
+            document = "not found."
+
+        return {"document_content": document}
 
     def _main_agent(self, state: AgentState) -> Dict[str, Any]:
         prompt = self.prompts.main_agent(state.user_message)
@@ -51,9 +72,18 @@ class Workflow:
         return {"messages": state.messages + [response]}
 
     def run(self, user_message: str):
-        return self.build.invoke({"messages": [], "user_message": user_message})
+        return self.build.invoke(
+            {
+                "messages": [],
+                "user_message": user_message,
+                "is_include_document": False,
+                "document_name": "TUGAS BESAR 2 RPL.pdf",
+                "document_type": "pdf",
+            }
+        )
 
 
 if __name__ == "__main__":
-    agent = Workflow()
-    agent.run("Hai")
+    agent = Workflow("docs")
+    result = agent.run("apa yang dimaksud dengan RPL?")
+    print(result)
