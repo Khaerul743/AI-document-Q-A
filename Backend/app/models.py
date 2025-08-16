@@ -20,7 +20,9 @@ class AgentState(BaseModel):
     messages: Annotated[Sequence[BaseMessage], add_messages]
     user_message: Optional[str] = "none"
     response: Optional[str] = "none"
-    is_document: bool = False
+    is_include_document: bool = False
+    document_title: Optional[str] = "none"
+    document_content: Optional[str] = "none"
     # can_answer: bool = False
     reason: Optional[str] = "none"
     document_description: Optional[str] = "none"

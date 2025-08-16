@@ -39,6 +39,7 @@ class RAGSystem:
             print(f"Membuat ChromaDB baru: {e}")
             # Buat directory jika belum ada
             os.makedirs(self.chroma_directory, exist_ok=True)
+    def load_one_document(self, directory_path:str, file_name:str, file_type:str):
 
     def load_document(self, directory_path: str, file_types: Optional[List] = None):
         if file_types is None:
@@ -114,7 +115,7 @@ class RAGSystem:
 
         print("QA chain berhasil disetup")
 
-    def query(self, question: str) -> dict:
+    def query(self, question: str):
         if self.qa_chain is None:
             return {
                 "answer": "RAG system belum disetup. Silakan tambahkan dokumen terlebih dahulu.",
@@ -128,10 +129,8 @@ class RAGSystem:
                 "source_documents": result["source_documents"],
             }
         except Exception as e:
-            return {
-                "answer": f"Error saat memproses query: {str(e)}",
-                "source_documents": [],
-            }
+            print(f"error saat query ke dokumen: {e}")
+            return False
 
     def similarity_search(self, query: str, k: int = 4) -> List[Document]:
         if self.vectorstore is None:
@@ -141,7 +140,7 @@ class RAGSystem:
 
 if __name__ == "__main__":
     rag = RAGSystem("data", collection_name="my_collection")
-    documents = rag.load_document("document", file_types=["pdf"])
+    documents = rag.load_document("docs", file_types=["pdf"])
     rag.add_document(documents)
     similarity = rag.similarity_search("RPL")
     print(similarity)

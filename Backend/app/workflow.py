@@ -1,3 +1,4 @@
+import os
 from typing import Any, Dict
 
 from dotenv import load_dotenv
@@ -6,18 +7,21 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.prebuilt import ToolNode
 from models import AgentState
 from prompts import AgentPromptControl
+from RAG import RAGSystem
 from tools import AgentTools
 
 load_dotenv()
 
 
 class Workflow:
-    def __init__(self):
+    def __init__(self, directory_path: str):
         self.llm_for_reasoning = ChatOpenAI(model="gpt-4o")
         self.llm_for_explanation = ChatOpenAI(model="gpt-3.5-turbo")
         self.prompts = AgentPromptControl(is_include_memory=False)
         self.tools = AgentTools()
         self.build = self._build_workflow()
+        self.rag = RAGSystem("data", "my_collections")
+        self.directiory_path = directory_path
 
     def _build_workflow(self):
         graph = StateGraph(AgentState)
@@ -27,6 +31,17 @@ class Workflow:
         graph.add_edge(START, "main_agent")
 
         return graph.compile()
+
+    def _checking_message_type(self, state: AgentState):
+        if state.is_include_document and os.path.exists(state.document_title):
+            return "describe_document"
+        return "main_agent"
+
+    def _load_document(self, state: AgentState):
+        if not os.path.exists(self.directiory_path + "/"):
+            os.makedirs(self.directiory_path, exist_ok=True)
+        
+
 
     def _main_agent(self, state: AgentState) -> Dict[str, Any]:
         prompt = self.prompts.main_agent(state.user_message)
