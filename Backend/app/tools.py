@@ -2,8 +2,10 @@ from RAG import RAGSystem
 
 
 class AgentTools:
-    def __init__(self):
-        self.rag = RAGSystem("data", "my_collections")
+    def __init__(self, chromadb_path: str, collection_name: str):
+        self.chromadb_path = chromadb_path
+        self.collection_name = collection_name
+        self.rag = RAGSystem(self.chromadb_path, self.collection_name)
 
     def get_document(self, query: str):
         """Gunakan tool untuk mencari informasi dokumen yang telah diberikan oleh pengguna."""
@@ -12,7 +14,6 @@ class AgentTools:
             if not get_document:
                 list_docs = []
                 documents = self.rag.similarity_search(query)
-                print(documents)
                 for document in documents:
                     detail_doc = {
                         "source": document.metadata["source"],
@@ -24,6 +25,8 @@ class AgentTools:
                 get_document = "Berikut adalah hasil search dari document:"
                 for item in list_docs:
                     get_document += f"\n**PAGE {item['page']}**\n- source: {item['source']}\n-content: {item['content']}\n"
+
+                print(get_document)
             return get_document
         except Exception as e:
             print(f"Terjadi kesalahan di tool get_document: {e}")

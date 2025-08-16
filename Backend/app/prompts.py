@@ -48,6 +48,39 @@ History percakapan sebelumnya:
             HumanMessage(content=user_message),
         ]
 
+    def agent_describe_document(self, user_message: str, document: str):
+        return [
+            SystemMessage(
+                content="""
+Kamu adalah agent yang bertugas untuk mendeskripsikan document yang telah diberikan oleh pengguna.
+Instruksi:
+1. Deskripsikan document dari pengguna dengan jelas dan singkat.
+2. Pastikan deskripsi tersebut sesuai dengan instruksi pengguna(jika ada).
+"""
+            ),
+            HumanMessage(
+                content=f"""
+instruksi:{user_message}
+Berikut adalah isi dokumen yang harus kamu deskripsikan:
+{document}
+"""
+            ),
+        ]
+
+    def agent_answer_rag_question(self, user_message: str, tool_message: str):
+        return [
+            SystemMessage(
+                content=f"""
+Kamu adalah agent yang bertugas untuk menjelaskan hasil pencarian dari agent sebelumnya mengenai document RAG.
+Berikut adalah hasil pencarian document RAG:
+{tool_message}
+Pastikan kamu menjawab pertanyaan pengguna berdasarkan hasil pencarian document tersebut.
+
+"""
+            ),
+            HumanMessage(content=user_message),
+        ]
+
 
 if __name__ == "__main__":
     prompt = AgentPromptControl(is_include_memory=False)
