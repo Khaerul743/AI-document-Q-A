@@ -33,6 +33,7 @@ class AgentPromptControl:
             SystemMessage(
                 content=f"""
 Kamu adalah asisten pribadi.
+Pastikan kamu mengingat state history messages sebelumnya sebelum menggunakan tool.
 Kamu memiliki akses ke tool berikut:
 - get_document(query: str): Gunakan untuk mengambil informasi dari dokumen pengguna.
 
@@ -41,7 +42,10 @@ Instruksi:
 2. Jangan jawab "tidak tahu" tanpa mencoba tool.
 3. Selalu prioritaskan penggunaan tool sebelum menebak.
 
-History percakapan sebelumnya:
+Perlu diingat bahwa jangan terlalu mengandalkan tool untuk menjawab, melainkan kamu bisa menggukanan state messages history untuk menjawab pertanyaan.
+Gunakan tool seperlunya saja.
+
+percakapan sebelumnya:
 {previous_context}
 """
             ),

@@ -2,8 +2,9 @@ import os
 from typing import Any, Dict
 
 from dotenv import load_dotenv
-from langchain_core.messages import AIMessage, ToolMessage
+from langchain_core.messages import AIMessage, HumanMessage
 from langchain_openai import ChatOpenAI
+from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 from langgraph.prebuilt import ToolNode
 from models import AgentState
@@ -21,6 +22,7 @@ class Workflow:
         self.llm_for_reasoning = ChatOpenAI(model="gpt-4o")
         self.llm_for_explanation = ChatOpenAI(model="gpt-3.5-turbo")
         self.prompts = AgentPromptControl(is_include_memory=False)
+        self.memory = MemorySaver()
         self.tools = AgentTools(self.chromadb_path, self.collection_name)
         self.build = self._build_workflow()
         self.rag = RAGSystem(self.chromadb_path, self.collection_name)
@@ -50,7 +52,7 @@ class Workflow:
         graph.add_edge("get_document", "answer_rag_question")
         graph.add_edge("answer_rag_question", END)
 
-        return graph.compile()
+        return graph.compile(checkpointer=self.memory)
 
     def _checking_message_type(self, state: AgentState):
         if state.is_include_document and os.path.exists(
@@ -88,7 +90,13 @@ class Workflow:
         messages = [prompt[0]] + state.messages + [prompt[1]]
         llm = self.llm_for_reasoning.bind_tools([self.tools.get_document])
         response = llm.invoke(messages)
-        return {"messages": state.messages + [response]}
+        print(f"AI: {response.content}")
+        print(f"state: {state.messages} ")
+        return {
+            "messages": state.messages
+            + [HumanMessage(content=state.user_message)]
+            + [response]
+        }
 
     def _should_continue(self, state: AgentState):
         last_message = state.messages[-1]
@@ -102,23 +110,24 @@ class Workflow:
             state.user_message, tool_message
         )
         llm = self.llm_for_explanation
-        response = llm.invoke(prompt)
+        response = llm.invoke([prompt[0]] + state.messages + [prompt[1]])
         print(f"response: {response.content}")
         return {"messages": state.messages + [response]}
 
-    def run(self, user_message: str):
+    def run(self, state: Dict, thread_id: str):
         return self.build.invoke(
-            {
-                "messages": [],
-                "user_message": user_message,
-                "is_include_document": False,
-                "document_name": "TUGAS BESAR 2 RPL.pdf",
-                "document_type": "pdf",
-            }
+            state,
+            config={"configurable": {"thread_id": thread_id}},
         )
 
 
 if __name__ == "__main__":
     agent = Workflow("docs", "data", "my_collections")
-    result = agent.run("anggota kelompok dari document tersebut?")
+
+    while True:
+        user_input = input("Human: ")
+        if user_input == "exit":
+            print("bye bye")
+            break
+        result = agent.run(state={"user_message": user_input}, thread_id="thread_123")
     print(result)
