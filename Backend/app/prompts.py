@@ -2,7 +2,8 @@ from typing import Optional
 
 from dotenv import load_dotenv
 from langchain_core.messages import HumanMessage, SystemMessage
-from memory import MemoryControl
+
+from app.memory import MemoryControl
 
 load_dotenv()
 

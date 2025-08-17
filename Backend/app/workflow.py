@@ -7,10 +7,11 @@ from langchain_openai import ChatOpenAI
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 from langgraph.prebuilt import ToolNode
-from models import AgentState
-from prompts import AgentPromptControl
-from RAG import RAGSystem
-from tools import AgentTools
+
+from app.models import AgentState
+from app.prompts import AgentPromptControl
+from app.RAG import RAGSystem
+from app.tools import AgentTools
 
 load_dotenv()
 
@@ -83,7 +84,7 @@ class Workflow:
         )
         llm = self.llm_for_explanation
         response = llm.invoke(prompt)
-        return {"messages": state.messages + [response]}
+        return {"messages": state.messages + [response], "response": response.content}
 
     def _main_agent(self, state: AgentState) -> Dict[str, Any]:
         prompt = self.prompts.main_agent(state.user_message)
@@ -95,7 +96,8 @@ class Workflow:
         return {
             "messages": state.messages
             + [HumanMessage(content=state.user_message)]
-            + [response]
+            + [response],
+            "response": response.content,
         }
 
     def _should_continue(self, state: AgentState):
@@ -112,7 +114,7 @@ class Workflow:
         llm = self.llm_for_explanation
         response = llm.invoke([prompt[0]] + state.messages + [prompt[1]])
         print(f"response: {response.content}")
-        return {"messages": state.messages + [response]}
+        return {"messages": state.messages + [response], "response": response.content}
 
     def run(self, state: Dict, thread_id: str):
         return self.build.invoke(

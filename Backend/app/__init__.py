@@ -1,7 +1,8 @@
 from typing import Any, Dict
 
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
-from workflow import Workflow
+
+from app.workflow import Workflow
 
 
 class Agent:

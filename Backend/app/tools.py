@@ -1,4 +1,4 @@
-from RAG import RAGSystem
+from app.RAG import RAGSystem
 
 
 class AgentTools:
