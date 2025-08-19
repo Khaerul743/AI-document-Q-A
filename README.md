@@ -149,8 +149,7 @@ docker-compose up -d --build
 ### 1. Document Upload
 
 1. Navigate to the application
-2. Click "Upload Document" or drag & drop a PDF file
-3. Wait for the document to be processed and indexed
+2. Wait for the document to be processed and indexed
 
 ### 2. Ask Questions
 
@@ -163,7 +162,7 @@ docker-compose up -d --build
 
 ### 3. Memory Features
 
-With `INCLUDE_MEMORY_WITH_MEM0=true`:
+With `INCLUDE_MEMORY=true`:
 - The system remembers previous conversations
 - Provides context-aware responses
 - Maintains conversation history across sessions
@@ -175,7 +174,7 @@ With `INCLUDE_MEMORY_WITH_MEM0=true`:
 | Variable | Description | Default | Required |
 |----------|-------------|---------|----------|
 | `OPENAI_API_KEY` | Your OpenAI API key | - | ✅ |
-| `INCLUDE_MEMORY` | Enable long-term memory | `true` | ❌ |
+| `INCLUDE_MEMORY` | Enable long-term memory | `false` | ❌ |
 
 ## 🏗️ Project Structure
 
@@ -239,7 +238,7 @@ curl -X POST "http://localhost:8000/api/agent/document" \
    - Verify ChromaDB is working properly
 
 4. **Memory Not Working**
-   - Ensure `INCLUDE_MEMORY_WITH_MEM0=true` in backend `.env`
+   - Ensure `INCLUDE_MEMORY=true` in backend `.env`
    - Verify Qdrant is running and accessible
    - Check backend logs for memory-related errors
 
