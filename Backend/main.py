@@ -3,14 +3,15 @@ import shutil
 
 import uvicorn
 from app import Agent
+from dotenv import load_dotenv
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
+load_dotenv()
+
 app = FastAPI()
-
 origins = ["*"]
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -24,7 +25,9 @@ class UserMessage(BaseModel):
     message: str
 
 
-agent = Agent("documents", "data", "my_collections")
+# include_memory = bool(os.environ.get("INCLUDE_MEMORY"))
+include_memory = True if os.environ.get("INCLUDE_MEMORY").lower() == "true" else False
+agent = Agent("documents", "data", "my_collections", include_memory=include_memory)
 
 
 @app.post("/api/agent")
@@ -83,3 +86,4 @@ async def withDocument(message: str = Form(...), file: UploadFile = File(...)):
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
+    # print(f"include_memory: {include_memory}")

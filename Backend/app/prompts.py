@@ -15,6 +15,7 @@ class AgentPromptControl:
         memory_provider: Optional[str] = "",
         provider_host: Optional[str] = "",
         provider_port: Optional[str] = "",
+        memory_id: Optional[str] = "default",
     ):
         self.is_include_memory = is_include_memory
         if self.is_include_memory:
@@ -23,13 +24,15 @@ class AgentPromptControl:
                 provider_host=provider_host,
                 provider_port=provider_port,
             )
+            self.memory_id = memory_id
 
-    def main_agent(self, user_message: str, memory_id: Optional[str] = "default"):
+    def main_agent(self, user_message: str):
         previous_context = "tidak ada."
         if self.is_include_memory:
             previous_context = self.memory.get_context(
-                query=user_message, memory_id=memory_id
+                query=user_message, memory_id=self.memory_id
             )
+            print(f"===========PREVIOUS CONTEXT=============\n{previous_context}")
         return [
             SystemMessage(
                 content=f"""

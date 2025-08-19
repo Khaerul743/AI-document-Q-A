@@ -24,6 +24,7 @@ class MemoryControl:
         }
 
         self.memory = Memory.from_config(self.config)
+        print("Memory Berhasil di setup.")
 
     def get_context(self, query: str, memory_id: str):
         get_memory = self.memory.search(query=query, user_id=memory_id, limit=3)

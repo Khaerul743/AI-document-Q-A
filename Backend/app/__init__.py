@@ -6,11 +6,18 @@ from app.workflow import Workflow
 
 
 class Agent:
-    def __init__(self, directory_path: str, chromadb_path: str, collection_name: str):
+    def __init__(
+        self,
+        directory_path: str,
+        chromadb_path: str,
+        collection_name: str,
+        include_memory=False,
+    ):
         self.workflow = Workflow(
             directory_path=directory_path,
             chromadb_path=chromadb_path,
             collection_name=collection_name,
+            include_memory=include_memory,
         )
         self._history_messages = None
 

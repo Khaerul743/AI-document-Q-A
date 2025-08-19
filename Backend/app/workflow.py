@@ -17,12 +17,26 @@ load_dotenv()
 
 
 class Workflow:
-    def __init__(self, directory_path: str, chromadb_path: str, collection_name: str):
+    def __init__(
+        self,
+        directory_path: str,
+        chromadb_path: str,
+        collection_name: str,
+        include_memory: bool = False,
+    ):
         self.chromadb_path = chromadb_path
         self.collection_name = collection_name
         self.llm_for_reasoning = ChatOpenAI(model="gpt-4o")
         self.llm_for_explanation = ChatOpenAI(model="gpt-3.5-turbo")
-        self.prompts = AgentPromptControl(is_include_memory=False)
+        self.memory_provider = os.environ.get("MEMORY_PROVIDER")
+        self.provider_host = os.environ.get("PROVIDER_HOST")
+        self.provider_port = os.environ.get("PROVIDER_PORT")
+        self.prompts = AgentPromptControl(
+            is_include_memory=include_memory,
+            memory_provider=self.memory_provider,
+            provider_host=self.provider_host,
+            provider_port=self.provider_port,
+        )
         self.memory = MemorySaver()
         self.tools = AgentTools(self.chromadb_path, self.collection_name)
         self.build = self._build_workflow()
@@ -84,13 +98,40 @@ class Workflow:
         )
         llm = self.llm_for_explanation
         response = llm.invoke(prompt)
-        return {"messages": state.messages + [response], "response": response.content}
+        return {
+            "messages": state.messages + [response],
+            "response": response.content,
+            "is_include_document": False,
+        }
+
+    def _formatted_message(self, messages):
+        formatted = []
+        for message in messages:
+            data = {}
+            if isinstance(message, HumanMessage):
+                data["role"] = "user"
+                data["content"] = message.content
+                formatted.append(data)
+            elif isinstance(message, AIMessage):
+                data["role"] = "assistant"
+                data["content"] = message.content
+                formatted.append(data)
+        return formatted
 
     def _main_agent(self, state: AgentState) -> Dict[str, Any]:
         prompt = self.prompts.main_agent(state.user_message)
         messages = [prompt[0]] + state.messages + [prompt[1]]
         llm = self.llm_for_reasoning.bind_tools([self.tools.get_document])
         response = llm.invoke(messages)
+        if self.prompts.is_include_memory:
+            message = [
+                HumanMessage(content=state.user_message),
+                AIMessage(content=response.content),
+            ]
+            formatted_message = self._formatted_message(message)
+            print(formatted_message)
+            self.prompts.memory.add_context(formatted_message, self.prompts.memory_id)
+
         print(f"AI: {response.content}")
         print(f"state: {state.messages} ")
         return {
